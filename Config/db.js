@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    const mongoURI = "mongodb://localhost:27017/complaints"; // update if using Atlas
+    const mongoURI = process.env.MONGO_URI; // update if using Atlas
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,

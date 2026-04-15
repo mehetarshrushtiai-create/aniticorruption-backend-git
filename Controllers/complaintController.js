@@ -1,19 +1,28 @@
 import Complaint from "../Models/Complaint.js";
 import OpenAI from "openai";
-import { authenticate,adminOnly } from "../middleware/authMiddleware.js";
+import { authenticate, adminOnly } from "../middleware/authMiddleware.js";
 
+// ✅ FIX 1: ADD openai initialization (IMPORTANT)
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 // Preview complaint (AI summary only)
 export const previewComplaint = async (req, res) => {
   try {
     const { title, description } = req.body;
+
     const aiResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "Summarize complaints clearly." },
-        { role: "user", content: `Title: ${title}\nDescription: ${description}` }
-      ]
+        {
+          role: "user",
+          content: `Title: ${title}\nDescription: ${description}`,
+        },
+      ],
     });
+
     res.json({ summary: aiResponse.choices[0].message.content });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -34,7 +43,7 @@ export const createComplaint = async (req, res) => {
       category,
       email,
       phone,
-      trackingId // ✅ add trackingId to complaint
+      trackingId, // ✅ add trackingId to complaint
     });
 
     await complaint.save();
@@ -43,7 +52,7 @@ export const createComplaint = async (req, res) => {
     res.status(201).json({
       message: "✅ Complaint submitted successfully!",
       trackingId: complaint.trackingId,
-      complaint
+      complaint,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
