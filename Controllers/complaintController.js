@@ -69,35 +69,6 @@ export const getComplaints = async (req, res) => {
   }
 };*/
 import Complaint from "../Models/Complaint.js";
-import OpenAI from "openai";
-
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-// PREVIEW COMPLAINT (AI Summary)
-export const previewComplaint = async (req, res) => {
-  try {
-    const { title, description } = req.body;
-
-    if (!title || !description) {
-      return res.status(400).json({ message: "Title and description are required" });
-    }
-
-    const aiResponse = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: "Summarize complaints clearly." },
-        { role: "user", content: `Title: ${title}\nDescription: ${description}` },
-      ],
-    });
-
-    res.json({ summary: aiResponse.choices[0].message.content });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
 
 // CREATE COMPLAINT (No Auth, Email Optional)
 export const createComplaint = async (req, res) => {
@@ -160,3 +131,28 @@ export const getComplaints = async (req, res) => {
   }
 };
 
+// UPDATE COMPLAINT STATUS (Admin Only)
+export const updateComplaintStatus = async (req, res) => {
+  try {
+    const allowedStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"];
+    const newStatus = req.body.status;
+
+    if (!allowedStatuses.includes(newStatus)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    const complaint = await Complaint.findOneAndUpdate(
+      { trackingId: req.params.trackingId },
+      { status: newStatus },
+      { new: true }
+    );
+
+    if (!complaint) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+
+    res.json({ message: "Status updated successfully", complaint });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

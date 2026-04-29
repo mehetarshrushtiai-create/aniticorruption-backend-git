@@ -167,7 +167,7 @@ router.put("/:trackingId/status", authMiddleware, async (req, res) => {
 export default router;
 */
 import express from "express";
-import { createComplaint, getComplaints } from "../Controllers/complaintController.js";
+import { createComplaint, getComplaints, updateComplaintStatus } from "../Controllers/complaintController.js";
 import { authenticate, adminOnly } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
@@ -179,29 +179,6 @@ router.post("/", createComplaint);
 router.get("/", getComplaints);
 
 // Admin‑only route (token required + must be ADMIN)
-router.put("/:trackingId/status", authenticate, adminOnly, async (req, res) => {
-  try {
-    const allowedStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"];
-    const newStatus = req.body.status;
-
-    if (!allowedStatuses.includes(newStatus)) {
-      return res.status(400).json({ message: "Invalid status value" });
-    }
-
-    const complaint = await Complaint.findOneAndUpdate(
-      { trackingId: req.params.trackingId },
-      { status: newStatus },
-      { new: true }
-    );
-
-    if (!complaint) {
-      return res.status(404).json({ message: "Complaint not found" });
-    }
-
-    res.json({ message: "Status updated successfully", complaint });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+router.put("/:trackingId/status", authenticate, adminOnly, updateComplaintStatus);
 
 export default router;
