@@ -64,19 +64,18 @@ export default Complaint;
 import mongoose from "mongoose";
 
 const complaintSchema = new mongoose.Schema({
-  title: String,
-  description: String,
-  category: String,
-  email: { type: String, default: "" },
+  title: { type: String, required: true },
+  description: { type: String, required: true },
+  category: { type: String, required: true },
+  email: { type: String, default: "" },       // ✅ email field
+  whatsapp: { type: String, default: "" },    // ✅ mobile/WhatsApp field
   societyName: String,
   address: String,
   flatNumber: String,
   date: String,
   time: String,
-  whatsapp: String,
   trackingId: { type: String, unique: true },
   status: { type: String, default: "PENDING" },
-  proofFile: { type: String }, // ✅ uploaded file path
 });
 
 export default mongoose.model("Complaint", complaintSchema);

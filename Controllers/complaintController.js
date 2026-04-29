@@ -75,7 +75,7 @@ import Complaint from "../Models/Complaint.js";
 // CREATE COMPLAINT
 export const createComplaint = async (req, res) => {
   try {
-    const { title, description, category, email, societyName, address, flatNumber, date, time, whatsapp } = req.body;
+    const { title, description, category, email, whatsapp, societyName, address, flatNumber, date, time } = req.body;
 
     if (!title || !description || !category) {
       return res.status(400).json({ message: "Title, description, and category are required" });
@@ -88,14 +88,13 @@ export const createComplaint = async (req, res) => {
       description,
       category,
       email,
+      whatsapp,
       societyName,
       address,
       flatNumber,
       date,
       time,
-      whatsapp,
       trackingId,
-      proofFile: req.file ? req.file.path : null, // ✅ save file path
     });
 
     await complaint.save();
@@ -106,14 +105,14 @@ export const createComplaint = async (req, res) => {
       message: "Complaint submitted successfully",
       trackingId: complaint.trackingId,
       summary,
-      proofFile: complaint.proofFile,
     });
   } catch (err) {
+    console.error("Complaint save error:", err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET ALL COMPLAINTS
+// GET ALL COMPLAINTS (Admin)
 export const getComplaints = async (req, res) => {
   try {
     const complaints = await Complaint.find();
@@ -123,7 +122,20 @@ export const getComplaints = async (req, res) => {
   }
 };
 
-// UPDATE COMPLAINT STATUS
+// TRACK COMPLAINT BY ID (Public)
+export const trackComplaint = async (req, res) => {
+  try {
+    const complaint = await Complaint.findOne({ trackingId: req.params.trackingId });
+    if (!complaint) {
+      return res.status(404).json({ message: "Complaint not found" });
+    }
+    res.json(complaint);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// UPDATE STATUS (Admin)
 export const updateComplaintStatus = async (req, res) => {
   try {
     const allowedStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"];

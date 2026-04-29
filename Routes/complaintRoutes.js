@@ -168,19 +168,21 @@ export default router;
 */
 // Routes/complaintRoutes.js
 import express from "express";
-import { createComplaint, getComplaints, updateComplaintStatus } from "../Controllers/complaintController.js";
+import { createComplaint, getComplaints, updateComplaintStatus, trackComplaint } from "../Controllers/complaintController.js";
 import { authenticate, adminOnly } from "../middleware/authMiddleware.js";
-import upload from "../middleware/Uploads.js";
 
 const router = express.Router();
 
-// Public route with file upload
-router.post("/", upload.single("proof"), createComplaint);
+// Public route to create complaint
+router.post("/", createComplaint);
 
-// Public route
-router.get("/", getComplaints);
+// Public route to track complaint by ID
+router.get("/:trackingId", trackComplaint);
 
-// Admin-only route
+// Admin-only route to get all complaints
+router.get("/", authenticate, adminOnly, getComplaints);
+
+// Admin-only route to update status
 router.put("/:trackingId/status", authenticate, adminOnly, updateComplaintStatus);
 
 export default router;
