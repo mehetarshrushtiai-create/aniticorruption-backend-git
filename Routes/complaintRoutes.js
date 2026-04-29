@@ -76,7 +76,7 @@ export default router;
 import express from "express";
 import Complaint from "../Models/Complaint.js";
 import jwt from "jsonwebtoken";
-import upload from "../middleware/upload.js";
+import upload from "../middleware/Uploads.js";
 
 const router = express.Router();
 
