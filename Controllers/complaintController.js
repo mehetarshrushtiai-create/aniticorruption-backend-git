@@ -75,18 +75,7 @@ import Complaint from "../Models/Complaint.js";
 // CREATE COMPLAINT
 export const createComplaint = async (req, res) => {
   try {
-    const {
-      title,
-      description,
-      category,
-      email,
-      societyName,
-      address,
-      flatNumber,
-      date,
-      time,
-      whatsapp,
-    } = req.body;
+    const { title, description, category, email, societyName, address, flatNumber, date, time, whatsapp } = req.body;
 
     if (!title || !description || !category) {
       return res.status(400).json({ message: "Title, description, and category are required" });
@@ -106,7 +95,7 @@ export const createComplaint = async (req, res) => {
       time,
       whatsapp,
       trackingId,
-      proofFile: req.file ? req.file.path : null, // ✅ save file path if uploaded
+      proofFile: req.file ? req.file.path : null, // ✅ save file path
     });
 
     await complaint.save();
@@ -134,7 +123,7 @@ export const getComplaints = async (req, res) => {
   }
 };
 
-// UPDATE COMPLAINT STATUS (Admin Only)
+// UPDATE COMPLAINT STATUS
 export const updateComplaintStatus = async (req, res) => {
   try {
     const allowedStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"];
