@@ -166,19 +166,21 @@ router.put("/:trackingId/status", authMiddleware, async (req, res) => {
 
 export default router;
 */
+// Routes/complaintRoutes.js
 import express from "express";
 import { createComplaint, getComplaints, updateComplaintStatus } from "../Controllers/complaintController.js";
 import { authenticate, adminOnly } from "../middleware/authMiddleware.js";
+import upload from "../middleware/Uploads.js";
 
 const router = express.Router();
 
-// Public route (no token required)
-router.post("/", createComplaint);
+// Public route with file upload
+router.post("/", upload.single("proof"), createComplaint);
 
-// Public route (list complaints)
+// Public route
 router.get("/", getComplaints);
 
-// Admin‑only route (token required + must be ADMIN)
+// Admin-only route
 router.put("/:trackingId/status", authenticate, adminOnly, updateComplaintStatus);
 
 export default router;

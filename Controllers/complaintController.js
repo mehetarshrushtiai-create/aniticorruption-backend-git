@@ -68,16 +68,18 @@ export const getComplaints = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };*/
+// Controllers/complaintController.js
+// Controllers/complaintController.js
 import Complaint from "../Models/Complaint.js";
 
-// CREATE COMPLAINT (No Auth, Email Optional)
+// CREATE COMPLAINT
 export const createComplaint = async (req, res) => {
   try {
     const {
       title,
       description,
       category,
-      email,        // optional
+      email,
       societyName,
       address,
       flatNumber,
@@ -87,12 +89,9 @@ export const createComplaint = async (req, res) => {
     } = req.body;
 
     if (!title || !description || !category) {
-      return res.status(400).json({
-        message: "Title, description, and category are required",
-      });
+      return res.status(400).json({ message: "Title, description, and category are required" });
     }
 
-    // Generate tracking ID
     const trackingId = "CMP-" + Date.now().toString().slice(-6);
 
     const complaint = new Complaint({
@@ -107,25 +106,29 @@ export const createComplaint = async (req, res) => {
       time,
       whatsapp,
       trackingId,
+      proofFile: req.file ? req.file.path : null, // ✅ save file path if uploaded
     });
 
     await complaint.save();
 
+    const summary = `Complaint "${title}" recorded. Category: ${category}. Description: ${description.substring(0, 80)}...`;
+
     res.status(201).json({
       message: "Complaint submitted successfully",
       trackingId: complaint.trackingId,
-      complaint,
+      summary,
+      proofFile: complaint.proofFile,
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-// GET ALL COMPLAINTS (Public)
+// GET ALL COMPLAINTS
 export const getComplaints = async (req, res) => {
   try {
-    const data = await Complaint.find();
-    res.json(data);
+    const complaints = await Complaint.find();
+    res.json(complaints);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

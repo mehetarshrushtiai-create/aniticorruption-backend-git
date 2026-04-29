@@ -60,13 +60,14 @@ complaintSchema.pre("save", function (next) {
 const Complaint = mongoose.model("Complaint", complaintSchema);
 export default Complaint;
 */
+// Models/Complaint.js
 import mongoose from "mongoose";
 
 const complaintSchema = new mongoose.Schema({
   title: String,
   description: String,
   category: String,
-  email: { type: String, default: "" }, // optional
+  email: { type: String, default: "" },
   societyName: String,
   address: String,
   flatNumber: String,
@@ -75,6 +76,7 @@ const complaintSchema = new mongoose.Schema({
   whatsapp: String,
   trackingId: { type: String, unique: true },
   status: { type: String, default: "PENDING" },
+  proofFile: { type: String }, // ✅ uploaded file path
 });
 
 export default mongoose.model("Complaint", complaintSchema);
