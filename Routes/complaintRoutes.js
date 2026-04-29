@@ -1,16 +1,17 @@
-import express from "express";
+/*import express from "express";
 import Complaint from "../Models/Complaint.js";
 import jwt from "jsonwebtoken";
+import upload from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Middleware to check token
+// AUTH
 function authMiddleware(req, res, next) {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "No token" });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secretkey");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch {
@@ -18,77 +19,98 @@ function authMiddleware(req, res, next) {
   }
 }
 
-// ✅ Create complaint
-router.post("/", authMiddleware, async (req, res) => {
+// ✅ CREATE COMPLAINT (WITH IMAGE + ADDRESS + SOCIETY)
+router.post(
+  "/",
+  authMiddleware,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const {
+        title,
+        description,
+        category,
+        societyName,
+        address,
+        flatNumber,
+        date,
+        time,
+        whatsapp,
+      } = req.body;
+
+      if (!title || !description || !category) {
+        return res.status(400).json({
+          message: "Title, description, category required",
+        });
+      }
+
+      const complaint = new Complaint({
+        title,
+        description,
+        category,
+        societyName,
+        address,
+        flatNumber,
+        date,
+        time,
+        whatsapp,
+        email: req.user.email,
+        image: req.file ? req.file.path : null,
+      });
+
+      await complaint.save();
+
+      res.status(201).json({
+        message: "Complaint submitted successfully!",
+        trackingId: complaint.trackingId,
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: err.message });
+    }
+  }
+);
+
+export default router;
+*/
+import express from "express";
+import Complaint from "../Models/Complaint.js";
+import jwt from "jsonwebtoken";
+import upload from "../middleware/upload.js";
+
+const router = express.Router();
+
+// AUTH
+function auth(req, res, next) {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ message: "No token" });
+
+  try {
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch {
+    res.status(401).json({ message: "Invalid token" });
+  }
+}
+
+// CREATE COMPLAINT
+router.post("/", auth, upload.single("image"), async (req, res) => {
   try {
     const complaint = new Complaint({
       ...req.body,
       email: req.user.email,
+      image: req.file ? req.file.path : null,
     });
+
     await complaint.save();
-    res.json({
-      message: "Complaint submitted successfully!",
+
+    res.status(201).json({
+      message: "Complaint submitted",
       trackingId: complaint.trackingId,
     });
   } catch (err) {
-    console.error("Complaint save error:", err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ Get complaints for current user
-router.get("/me", authMiddleware, async (req, res) => {
-  const complaints = await Complaint.find({ email: req.user.email });
-  res.json(complaints);
-});
-
-// ✅ Admin: get all complaints
-router.get("/", authMiddleware, async (req, res) => {
-  if (req.user.role !== "ADMIN") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-  const complaints = await Complaint.find();
-  res.json(complaints);
-});
-
-// ✅ Track complaint by trackingId (public)
-router.get("/:trackingId", async (req, res) => {
-  try {
-    const complaint = await Complaint.findOne({ trackingId: req.params.trackingId });
-    if (!complaint) {
-      return res.status(404).json({ message: "Complaint not found" });
-    }
-    res.json(complaint);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ✅ Admin: update complaint status
-router.put("/:trackingId/status", authMiddleware, async (req, res) => {
-  if (req.user.role !== "ADMIN") {
-    return res.status(403).json({ message: "Forbidden" });
-  }
-
-  const allowedStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"];
-  const newStatus = req.body.status;
-
-  if (!allowedStatuses.includes(newStatus)) {
-    return res.status(400).json({ message: "Invalid status value" });
-  }
-
-  try {
-    const complaint = await Complaint.findOneAndUpdate(
-      { trackingId: req.params.trackingId },
-      { status: newStatus },
-      { new: true }
-    );
-    if (!complaint) {
-      return res.status(404).json({ message: "Complaint not found" });
-    }
-    res.json({ message: "Status updated", complaint });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.log(err);
+    res.status(500).json({ message: err.message });
   }
 });
 

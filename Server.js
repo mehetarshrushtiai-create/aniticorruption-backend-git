@@ -1,4 +1,4 @@
-import express from "express";
+/*import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import jwt from "jsonwebtoken";
@@ -77,3 +77,32 @@ mongoose
     });
   })
   .catch((err) => console.error("❌ MongoDB connection error:", err));
+  */
+ import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import mongoose from "mongoose";
+import complaintRoutes from "./Routes/complaintRoutes.js";
+
+dotenv.config();
+
+const app = express();
+
+app.use(cors());
+app.use(express.json());
+
+// IMPORTANT: for image access
+app.use("/Uploads", express.static("Uploads"));
+
+app.use("/api/complaints", complaintRoutes);
+
+mongoose
+  .connect(process.env.MONGO_URI)
+  .then(() => {
+    console.log("MongoDB connected");
+
+    app.listen(5002, () => {
+      console.log("Server running on port 5002");
+    });
+  })
+  .catch((err) => console.log(err));
